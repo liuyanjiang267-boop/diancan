@@ -1,0 +1,5 @@
+{
+  "name": "辅助点餐码",
+  "description": "A smart menu assistant allowing merchants to manage WiFi and payment details while providing customers with translation and quick communication tools.",
+  "requestFramePermissions": []
+}
