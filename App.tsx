@@ -260,21 +260,14 @@ const App: React.FC = () => {
         <div className="flex gap-4 p-2.5 bg-white/95 backdrop-blur-xl border border-white/50 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.1)] ring-1 ring-slate-900/5">
             <button
                 onClick={() => setModals(m => ({ ...m, comm: true }))}
-                disabled={!hasSelection}
-                className={`
-                    flex-1 h-16 rounded-[2rem] flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group
-                    ${hasSelection 
-                        ? 'bg-amber-300 text-slate-900 shadow-lg shadow-amber-200' 
-                        : 'bg-slate-100 text-slate-400' 
-                    }
-                `}
+                className="flex-1 h-16 rounded-[2rem] flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group bg-amber-300 text-slate-900 shadow-lg shadow-amber-200 active:scale-[0.98]"
             >
                 {hasSelection && (
                     <span className="absolute top-2 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-white text-amber-500 text-[10px] font-black shadow-sm">
                         {selectedIds.size}
                     </span>
                 )}
-                <MessageCircle size={24} strokeWidth={3} className={hasSelection ? 'fill-current' : ''} />
+                <MessageCircle size={24} strokeWidth={3} className="fill-current" />
                 <div className="flex flex-col items-start leading-none">
                      <span className="font-black text-sm">{zh.communicate}</span>
                      <span className="text-[10px] font-bold opacity-60 uppercase">{en.communicate}</span>
