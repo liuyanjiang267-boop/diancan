@@ -1,3 +1,4 @@
+
 import { MenuItem, QuickCard } from "./types";
 
 export const MOCK_MENU_ITEMS: MenuItem[] = [
@@ -16,6 +17,13 @@ export const QUICK_CARDS: QuickCard[] = [
   { label: "洗手间在哪?", subLabel: "Restroom?", icon: "🚻" },
   { label: "请给我水", subLabel: "Water Please", icon: "💧" },
   { label: "买单", subLabel: "Check Please", icon: "🧾" },
+];
+
+export const ACCESSIBILITY_CARDS: QuickCard[] = [
+  { label: "请写字交流", subLabel: "Please Write", icon: "🦻" },
+  { label: "请读菜单", subLabel: "Read Menu", icon: "👁️" },
+  { label: "请多耐心", subLabel: "Be Patient", icon: "⏳" },
+  { label: "需要帮助", subLabel: "Need Help", icon: "🙋" },
 ];
 
 export const DEFAULT_ALBUM_IMAGES: string[] = [

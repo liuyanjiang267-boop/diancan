@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Volume2, RotateCcw, X, MessageSquare, Sparkles } from 'lucide-react';
+import { Volume2, RotateCcw, X, MessageSquare, Sparkles, Heart } from 'lucide-react';
 import { MenuItem, QuickCard } from '../types';
-import { QUICK_CARDS } from '../constants';
+import { QUICK_CARDS, ACCESSIBILITY_CARDS } from '../constants';
 import { t } from '../translations';
 
 interface CommModalProps {
@@ -89,13 +89,14 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
           )}
 
           {/* Quick Actions Grid */}
+          {!activeCard && (
           <div className="mt-8">
             <div className="flex items-center gap-2 mb-4">
                 <Sparkles size={16} className="text-amber-400 fill-current" />
                 <div className="text-sm font-black text-slate-800">{zh.quickRequest}</div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3 pb-4">
+            <div className="grid grid-cols-2 gap-3 pb-2">
               {QUICK_CARDS.map((card, idx) => (
                 <button
                   key={idx}
@@ -110,7 +111,31 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
                 </button>
               ))}
             </div>
+
+            {/* Accessibility Section */}
+            <div className="flex items-center gap-2 mb-4 mt-6">
+                <Heart size={16} className="text-orange-500 fill-current" />
+                <div className="text-sm font-black text-slate-800">{zh.accessibilityCare}</div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pb-4">
+              {ACCESSIBILITY_CARDS.map((card, idx) => (
+                <button
+                  key={`acc-${idx}`}
+                  onClick={() => setActiveCard(card)}
+                  className="flex items-center gap-3 bg-white hover:bg-orange-50 border border-slate-100 hover:border-orange-200 active:scale-95 transition-all p-4 rounded-[1.5rem] text-left shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md group"
+                >
+                  <span className="text-3xl group-hover:scale-110 transition-transform">{card.icon}</span>
+                  <div>
+                    <div className="font-black text-slate-800 text-sm leading-tight group-hover:text-orange-700">{card.label}</div>
+                    <div className="text-[10px] text-slate-400 font-bold leading-tight mt-1 group-hover:text-orange-400">{card.subLabel}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
           </div>
+          )}
         </div>
 
         {/* Footer */}
