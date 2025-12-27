@@ -43,10 +43,6 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
             setBocDiscount(0);
             if (currentTotal > 0) {
                 const maxDiscount = Math.min(40, currentTotal);
-                // Use a seeded-like randomness based on amount so it doesn't jump wildly on every re-render unless intended
-                // For demo, standard random is fine, but lets limit updates. 
-                // Actually, to simulate "random reduction" triggered by system, we generate it once per switching to this method.
-                // However, here we just regen if amount changes.
                 if (sichuanDiscount === 0 || sichuanDiscount > maxDiscount) { 
                     const randomDisc = Math.random() * maxDiscount;
                     const roundedDisc = Math.floor(randomDisc * 100) / 100;
@@ -73,7 +69,6 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
     }
   }, [activeMethod, subMethod, customAmount]);
 
-  // Reset Sichuan discount trigger when switching sub-methods to give fresh random feeling
   const handleSubMethodChange = (method: 'sichuan' | 'boc') => {
       setSubMethod(method);
       if (method === 'sichuan') setSichuanDiscount(0); // Reset to trigger new random
@@ -117,25 +112,25 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
         
         {/* Amount Input */}
         <div className="px-6 py-6">
-            <div className={`rounded-[2rem] p-8 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-500 ${isOnline ? 'bg-orange-50' : 'bg-[#FFF0F2]'}`}>
+            <div className={`rounded-[2rem] p-8 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-500 bg-[#FFF0F2]`}>
                 {/* Promo Badge inside amount box */}
                 {isOnline && activeDiscount > 0 && (
-                  <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-sm animate-in fade-in">
+                  <div className="absolute top-0 right-0 bg-[#FF2442] text-white text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-sm animate-in fade-in">
                     -{config.currencySymbol}{activeDiscount.toFixed(2)}
                   </div>
                 )}
 
-                <span className={`text-xs font-black uppercase tracking-widest mb-2 transition-colors ${isOnline ? 'text-orange-400' : 'text-rose-400'}`}>
+                <span className={`text-xs font-black uppercase tracking-widest mb-2 transition-colors text-rose-400`}>
                   {isOnline ? zh.finalTotal : zh.totalDue}
                 </span>
                 
                 <div className="flex items-baseline justify-center w-full">
-                    <span className={`text-4xl font-black mr-2 self-center transition-colors ${isOnline ? 'text-orange-500' : 'text-rose-500'}`}>{config.currencySymbol}</span>
+                    <span className={`text-4xl font-black mr-2 self-center transition-colors text-[#FF2442]`}>{config.currencySymbol}</span>
                     
                     {isOnline && activeDiscount > 0 ? (
                         <div className="flex items-baseline gap-3">
-                             <span className="text-6xl font-black text-orange-500 animate-in zoom-in duration-300">{finalAmount.toFixed(2)}</span>
-                             <span className="text-xl font-bold text-orange-300 line-through decoration-2">{currentVal.toFixed(2)}</span>
+                             <span className="text-6xl font-black text-[#FF2442] animate-in zoom-in duration-300">{finalAmount.toFixed(2)}</span>
+                             <span className="text-xl font-bold text-rose-300 line-through decoration-2">{currentVal.toFixed(2)}</span>
                         </div>
                     ) : (
                         <input
@@ -143,7 +138,7 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
                             value={customAmount}
                             onChange={(e) => setCustomAmount(e.target.value)}
                             placeholder="0.00"
-                            className="bg-transparent text-6xl font-black text-rose-500 text-center w-full focus:outline-none placeholder:text-rose-200"
+                            className="bg-transparent text-6xl font-black text-[#FF2442] text-center w-full focus:outline-none placeholder:text-rose-200"
                             autoFocus
                         />
                     )}
@@ -165,7 +160,7 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
 
                  <button 
                     onClick={() => setActiveMethod('online')}
-                    className={`flex-1 min-w-[80px] py-4 rounded-2xl flex flex-col items-center justify-center transition-all ${activeMethod === 'online' ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'text-slate-400 hover:bg-white/50'}`}
+                    className={`flex-1 min-w-[80px] py-4 rounded-2xl flex flex-col items-center justify-center transition-all ${activeMethod === 'online' ? 'bg-[#FF2442] text-white shadow-md shadow-rose-100' : 'text-slate-400 hover:bg-white/50'}`}
                  >
                     <CreditCard size={20} strokeWidth={2.5} className="mb-1" />
                     <span className="text-[10px] font-black text-center leading-tight">{zh.onlinePayment}</span>
@@ -224,7 +219,7 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
                     </div>
                 )}
 
-                {/* 3. Online Payment (Sichuan / BOC) */}
+                {/* 3. Online Payment (Unifying visuals with red theme) */}
                 {activeMethod === 'online' && (
                     <div className="w-full space-y-4 animate-in fade-in slide-in-from-right-8 duration-300">
                         
@@ -232,38 +227,38 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={() => handleSubMethodChange('sichuan')}
-                                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all ${subMethod === 'sichuan' ? 'border-orange-400 bg-orange-50 text-orange-600' : 'border-slate-100 text-slate-400 hover:bg-slate-50'}`}
+                                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all ${subMethod === 'sichuan' ? 'border-rose-400 bg-rose-50 text-[#FF2442]' : 'border-slate-100 text-slate-400 hover:bg-slate-50'}`}
                             >
-                                <Landmark size={24} className={subMethod === 'sichuan' ? 'text-orange-500' : 'text-slate-300'} />
+                                <Landmark size={24} className={subMethod === 'sichuan' ? 'text-[#FF2442]' : 'text-slate-300'} />
                                 <span className="text-xs font-black">{zh.sichuanBank}</span>
                             </button>
                             <button
                                 onClick={() => handleSubMethodChange('boc')}
-                                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all ${subMethod === 'boc' ? 'border-red-400 bg-red-50 text-red-600' : 'border-slate-100 text-slate-400 hover:bg-slate-50'}`}
+                                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all ${subMethod === 'boc' ? 'border-rose-500 bg-rose-50 text-rose-600' : 'border-slate-100 text-slate-400 hover:bg-slate-50'}`}
                             >
-                                <CreditCard size={24} className={subMethod === 'boc' ? 'text-red-500' : 'text-slate-300'} />
+                                <CreditCard size={24} className={subMethod === 'boc' ? 'text-[#FF2442]' : 'text-slate-300'} />
                                 <span className="text-xs font-black">{zh.bocBank}</span>
                             </button>
                         </div>
 
                         {/* Promo Banner */}
-                        <div className={`text-white p-4 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold shadow-lg transition-colors duration-300 ${subMethod === 'sichuan' ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-orange-200' : 'bg-gradient-to-r from-red-500 to-rose-500 shadow-red-200'}`}>
-                             <Sparkles size={16} fill="currentColor" className="text-yellow-200 animate-pulse" />
+                        <div className={`text-white p-4 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold shadow-lg shadow-rose-100 transition-colors duration-300 bg-gradient-to-r from-[#FF2442] to-[#FF4D6D]`}>
+                             <Sparkles size={16} fill="currentColor" className="text-white/80 animate-pulse" />
                              {subMethod === 'sichuan' ? zh.promoSichuan : zh.promoBoc}
                         </div>
 
                         {/* Discount Display */}
-                        <div className={`flex justify-between items-center p-4 rounded-2xl border transition-colors ${subMethod === 'sichuan' ? 'bg-orange-50 border-orange-100' : 'bg-red-50 border-red-100'}`}>
+                        <div className={`flex justify-between items-center p-4 rounded-2xl border transition-colors bg-rose-50 border-rose-100`}>
                             <span className="text-slate-500 font-bold text-xs">
                                 {subMethod === 'sichuan' ? zh.randomReduction : zh.bankDiscount}
                             </span>
-                            <span className={`font-black text-lg ${subMethod === 'sichuan' ? 'text-orange-500' : 'text-red-500'}`}>
+                            <span className={`font-black text-lg text-[#FF2442]`}>
                                 -{config.currencySymbol}{activeDiscount.toFixed(2)}
                             </span>
                         </div>
 
                         <button 
-                            className={`w-full text-white font-black py-5 rounded-[2rem] text-lg shadow-xl active:scale-[0.98] transition-all flex flex-col items-center justify-center mt-2 ${subMethod === 'sichuan' ? 'bg-orange-500 shadow-orange-200' : 'bg-red-600 shadow-red-200'}`}
+                            className={`w-full text-white font-black py-5 rounded-[2rem] text-lg shadow-xl shadow-rose-100 active:scale-[0.98] transition-all flex flex-col items-center justify-center mt-2 bg-[#FF2442]`}
                             onClick={() => alert(`Processing Online Payment (${subMethod}): ${config.currencySymbol}${finalAmount}`)}
                         >
                             <span>{zh.confirmOnline}</span>
@@ -283,7 +278,7 @@ const PayModal: React.FC<PayModalProps> = ({ isOpen, onClose, totalAmount, confi
                             <p className="text-xs mt-1 font-medium">{en.proceedCounter}</p>
                         </div>
                         <button 
-                            className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] text-lg shadow-xl shadow-slate-200 active:scale-[0.98] transition-all flex flex-col items-center justify-center"
+                            className="w-full bg-[#1A1A1A] text-white font-black py-5 rounded-[2rem] text-lg shadow-xl shadow-slate-200 active:scale-[0.98] transition-all flex flex-col items-center justify-center"
                             onClick={() => alert(`Payment recorded for ${config.currencySymbol}${customAmount}`)}
                         >
                             <span>{zh.confirmCash}</span>

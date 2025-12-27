@@ -1,19 +1,24 @@
+
 export interface MenuItem {
   id: number;
   orig: string;
   trans: string;
   price: string;
+  image?: string;
+  category?: string;
 }
 
 export interface MerchantConfig {
   storeName: string;
   wifiSsid: string;
   wifiPass: string;
-  alipayMerchantId?: string; // Simplified from raw code
-  wechatMerchantId?: string; // Simplified from raw code
+  alipayMerchantId?: string;
+  wechatMerchantId?: string;
   currencySymbol: string;
-  albumImages: string[]; // List of image URLs for the merchant album
-  password: string; // Merchant login PIN/Password
+  albumImages: string[];
+  password: string; // Store admin password
+  apiProxyUrl?: string; // Optional: Reverse proxy for users in restricted regions
+  useBuiltInProxy?: boolean; // Use the developer-provided fallback proxy
 }
 
 export interface QuickCard {

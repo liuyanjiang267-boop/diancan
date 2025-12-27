@@ -23,9 +23,27 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
   if (!isOpen) return null;
 
   const handleSpeak = () => {
-    const text = activeCard ? activeCard.subLabel : "Please help me order these items.";
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    let text = "";
+    if (activeCard) {
+        // Speak the Chinese label for the card
+        text = activeCard.label;
+    } else {
+        if (selectedItems.length > 0) {
+            // Speak the selected dishes in Chinese
+            const itemNames = selectedItems.map(i => i.orig).join('，');
+            text = `你好，我想点：${itemNames}`;
+        } else {
+            // Default message if nothing selected
+            text = "你好，请服务员过来一下";
+        }
+    }
+
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'en-US';
+    utterance.lang = 'zh-CN'; // Set language to Chinese
+    utterance.rate = 0.9; // Slightly slower for better clarity
     window.speechSynthesis.speak(utterance);
   };
 
@@ -55,13 +73,13 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
             // Big Card View
             <div 
               onClick={() => setActiveCard(null)}
-              className="w-full bg-amber-50 border-2 border-amber-200 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center cursor-pointer animate-in zoom-in-95 duration-200 min-h-[300px] relative group"
+              className="w-full bg-rose-50 border-2 border-rose-100 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center cursor-pointer animate-in zoom-in-95 duration-200 min-h-[300px] relative group"
             >
               <div className="text-8xl mb-6 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">{activeCard.icon}</div>
-              <div className="text-3xl font-black text-slate-800 mb-2">{activeCard.label}</div>
-              <div className="text-xl text-slate-500 font-bold">{activeCard.subLabel}</div>
+              <div className="text-3xl font-black text-[#FF2442] mb-2">{activeCard.label}</div>
+              <div className="text-xl text-rose-300 font-bold">{activeCard.subLabel}</div>
               
-              <div className="mt-8 bg-white text-amber-500 px-5 py-3 rounded-full text-sm font-black flex items-center gap-2 shadow-sm">
+              <div className="mt-8 bg-white text-[#FF2442] px-5 py-3 rounded-full text-sm font-black flex items-center gap-2 shadow-sm border border-rose-100">
                 <RotateCcw size={18} strokeWidth={3} /> 
                 <span>{zh.tapReturn}</span>
               </div>
@@ -80,7 +98,7 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
                   {selectedItems.map((item) => (
                     <div key={item.id} className="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm">
                       <span className="font-black text-lg text-slate-800">{item.orig}</span>
-                      <span className="text-sm text-slate-500 font-bold bg-slate-50 px-2 py-1 rounded-lg">{item.trans}</span>
+                      <span className="text-sm text-[#FF2442] font-bold bg-rose-50 px-2 py-1 rounded-lg">{item.trans}</span>
                     </div>
                   ))}
                 </div>
@@ -92,7 +110,7 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
           {!activeCard && (
           <div className="mt-8">
             <div className="flex items-center gap-2 mb-4">
-                <Sparkles size={16} className="text-amber-400 fill-current" />
+                <Sparkles size={16} className="text-[#FF2442] fill-current" />
                 <div className="text-sm font-black text-slate-800">{zh.quickRequest}</div>
             </div>
             
@@ -101,12 +119,12 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
                 <button
                   key={idx}
                   onClick={() => setActiveCard(card)}
-                  className="flex items-center gap-3 bg-white hover:bg-amber-50 border border-slate-100 hover:border-amber-200 active:scale-95 transition-all p-4 rounded-[1.5rem] text-left shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md group"
+                  className="flex items-center gap-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 active:scale-95 transition-all p-4 rounded-[1.5rem] text-left shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md group"
                 >
                   <span className="text-3xl group-hover:scale-110 transition-transform">{card.icon}</span>
                   <div>
-                    <div className="font-black text-slate-800 text-sm leading-tight">{card.label}</div>
-                    <div className="text-[10px] text-slate-400 font-bold leading-tight mt-1">{card.subLabel}</div>
+                    <div className="font-black text-slate-800 text-sm leading-tight group-hover:text-[#FF2442]">{card.label}</div>
+                    <div className="text-[10px] text-slate-400 font-bold leading-tight mt-1 group-hover:text-rose-300">{card.subLabel}</div>
                   </div>
                 </button>
               ))}
@@ -114,7 +132,7 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
 
             {/* Accessibility Section */}
             <div className="flex items-center gap-2 mb-4 mt-6">
-                <Heart size={16} className="text-orange-500 fill-current" />
+                <Heart size={16} className="text-[#FF2442] fill-current" />
                 <div className="text-sm font-black text-slate-800">{zh.accessibilityCare}</div>
             </div>
 
@@ -123,12 +141,12 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
                 <button
                   key={`acc-${idx}`}
                   onClick={() => setActiveCard(card)}
-                  className="flex items-center gap-3 bg-white hover:bg-orange-50 border border-slate-100 hover:border-orange-200 active:scale-95 transition-all p-4 rounded-[1.5rem] text-left shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md group"
+                  className="flex items-center gap-3 bg-white hover:bg-rose-50 border border-slate-100 hover:border-rose-200 active:scale-95 transition-all p-4 rounded-[1.5rem] text-left shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-md group"
                 >
                   <span className="text-3xl group-hover:scale-110 transition-transform">{card.icon}</span>
                   <div>
-                    <div className="font-black text-slate-800 text-sm leading-tight group-hover:text-orange-700">{card.label}</div>
-                    <div className="text-[10px] text-slate-400 font-bold leading-tight mt-1 group-hover:text-orange-400">{card.subLabel}</div>
+                    <div className="font-black text-slate-800 text-sm leading-tight group-hover:text-[#FF2442]">{card.label}</div>
+                    <div className="text-[10px] text-slate-400 font-bold leading-tight mt-1 group-hover:text-rose-300">{card.subLabel}</div>
                   </div>
                 </button>
               ))}
@@ -142,7 +160,7 @@ const CommModal: React.FC<CommModalProps> = ({ isOpen, onClose, selectedItems })
         <div className="p-5 bg-white border-t border-slate-50">
           <button 
             onClick={handleSpeak}
-            className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-[2rem] py-4 flex flex-col items-center justify-center active:scale-[0.98] transition-all shadow-lg shadow-amber-200 group"
+            className="w-full bg-[#FF2442] text-white rounded-[2rem] py-4 flex flex-col items-center justify-center active:scale-[0.98] transition-all shadow-lg shadow-rose-100 group"
           >
             <div className="flex items-center gap-2">
                 <Volume2 size={24} strokeWidth={3} className="group-active:animate-pulse" /> 

@@ -27,12 +27,12 @@ export const ACCESSIBILITY_CARDS: QuickCard[] = [
 ];
 
 export const DEFAULT_ALBUM_IMAGES: string[] = [
-  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1550966871-3ed3c47e2ce2?auto=format&fit=crop&q=80&w=800",
-  "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&q=80&w=800"
+  "https://dimg04.c-ctrip.com/images/100910000000p33rk361D_C_378_245.jpg",
+  "https://dimg04.c-ctrip.com/images/100g0z000000nd29yD334_C_378_245.jpg",
+  "https://dimg04.c-ctrip.com/images/01014120008s8poq02042_C_378_245.jpg",
+  "https://dimg04.c-ctrip.com/images/0104w1200094jgc7232B7_C_378_245.jpg",
+  "https://dimg04.c-ctrip.com/images/0100412000l5yt9fx1FF7_C_378_245.jpg",
+  "https://dimg04.c-ctrip.com/images/0106h120008ib6iopCE1C_C_378_245.jpg"
 ];
 
 export const TARGET_LANGUAGES = [
@@ -42,3 +42,6 @@ export const TARGET_LANGUAGES = [
   { code: 'ja', label: '日本語', flag: '🇯🇵' },
   { code: 'ko', label: '한국어', flag: '🇰🇷' },
 ];
+
+// 默认内置的 API 代理地址（由开发者或商户群维护的稳定反向代理）
+export const DEFAULT_API_PROXY = "https://gemini-proxy.your-server.com";

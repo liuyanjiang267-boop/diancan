@@ -1,64 +1,84 @@
 
 import React, { useState, useMemo, useRef } from 'react';
-import { Camera, Image as ImageIcon, MessageCircle, CreditCard, Settings, ChefHat, LogOut, Loader2, Globe, ScanLine, Sparkles, Heart } from 'lucide-react';
+import { Camera, Image as ImageIcon, MessageCircle, CreditCard, Settings, Loader2, Globe, Scan, Utensils } from 'lucide-react';
 import { MenuItem, MerchantConfig, TargetLanguage } from './types';
-import { MOCK_MENU_ITEMS, DEFAULT_ALBUM_IMAGES, TARGET_LANGUAGES } from './constants';
+import { DEFAULT_ALBUM_IMAGES, TARGET_LANGUAGES } from './constants';
 import { t } from './translations';
+import { scanMenuImage } from './services/geminiService';
 import WiFiCard from './components/WiFiCard';
 import MenuListItem from './components/MenuListItem';
 import CommModal from './components/CommModal';
 import PayModal from './components/PayModal';
 import LoginModal from './components/LoginModal';
-import MerchantSettingsModal from './components/MerchantSettingsModal';
 import AlbumModal from './components/AlbumModal';
+import AdminDashboard from './components/AdminDashboard';
 
 const App: React.FC = () => {
-  // --- State ---
   const [items, setItems] = useState<MenuItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
   const [targetLang, setTargetLang] = useState<TargetLanguage>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Auth & Settings State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  
   const [modals, setModals] = useState({
     comm: false,
     pay: false,
     login: false,
-    settings: false,
     album: false
   });
 
   const [config, setConfig] = useState<MerchantConfig>({
-    storeName: "Tasty Dragon Bistro",
-    wifiSsid: "Guest_888",
-    wifiPass: "12345678",
+    storeName: "码上菜谱 · AI 智能点餐",
+    wifiSsid: "Store_Free_WiFi",
+    wifiPass: "88888888",
     currencySymbol: "¥",
     alipayMerchantId: "",
     wechatMerchantId: "",
     albumImages: DEFAULT_ALBUM_IMAGES,
-    password: "8888"
+    password: "8888",
+    apiProxyUrl: "",
+    useBuiltInProxy: true
   });
 
-  // --- Handlers ---
-  const handleScanClick = () => {
-    fileInputRef.current?.click();
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve((reader.result as string).split(',')[1]);
+      reader.onerror = reject;
+    });
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleScanClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setIsScanning(true);
-    setItems([]); 
-    
-    // Simulating API delay
-    setTimeout(() => {
-      setItems(MOCK_MENU_ITEMS);
+    try {
+      const base64 = await fileToBase64(file);
+      const results = await scanMenuImage(
+        base64, 
+        targetLang, 
+        config.currencySymbol,
+        config.apiProxyUrl
+      );
+      if (results?.length > 0) {
+        setItems(results);
+        setSelectedIds(new Set());
+      } else {
+        alert("识别结果为空，请确保拍摄清晰且包含菜名。");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("AI 引擎暂时无法连接。");
+    } finally {
       setIsScanning(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
-    }, 2000);
+    }
   };
 
   const handleToggleSelection = (id: number) => {
@@ -68,259 +88,169 @@ const App: React.FC = () => {
     setSelectedIds(newSet);
   };
 
-  const clearSelection = () => {
-    setSelectedIds(new Set());
-  };
-
-  const handleSettingsClick = () => {
-    if (isLoggedIn) {
-      setModals(m => ({ ...m, settings: true }));
-    } else {
-      setModals(m => ({ ...m, login: true }));
-    }
-  };
-
-  const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-    setModals(m => ({ ...m, login: false, settings: true }));
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setModals(m => ({ ...m, settings: false }));
-  };
-
-  const updateConfig = (newConfig: MerchantConfig) => {
-    setConfig(newConfig);
-  };
-
-  // --- Derived State ---
-  const selectedItems = useMemo(() => {
-    return items.filter(i => selectedIds.has(i.id));
-  }, [items, selectedIds]);
-
-  const totalAmount = useMemo(() => {
-    return selectedItems.reduce((acc, item) => acc + parseFloat(item.price), 0);
-  }, [selectedItems]);
-
-  const hasSelection = selectedIds.size > 0;
-  
+  const selectedItems = items.filter(i => selectedIds.has(i.id));
+  const totalAmount = selectedItems.reduce((acc, i) => acc + (parseFloat(i.price) || 0), 0);
   const zh = t.zh;
   const en = t.en;
 
-  return (
-    <div className="flex flex-col h-screen bg-[#FDFDFD] text-gray-900 font-sans max-w-lg mx-auto shadow-2xl relative">
-      
-      {/* Hidden Input for Camera/File */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        accept="image/*" 
-        onChange={handleFileChange} 
-        className="hidden" 
-      />
-
-      {/* Header - XHS Style: Clean, Minimal */}
-      <div className="bg-white/90 backdrop-blur-md px-5 py-3 flex justify-between items-center sticky top-0 z-30">
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-             <span className="text-rose-500"><Sparkles size={24} strokeWidth={3} fill="currentColor" className="text-rose-200" /></span>
-             {zh.appTitle}
-          </h1>
-          <p className="text-xs text-slate-400 font-bold ml-8 truncate max-w-[200px]">{config.storeName}</p>
+  const AppLogo = () => (
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <div className="bg-[#FF2442] p-1.5 rounded-xl shadow-lg shadow-rose-100 flex items-center justify-center">
+          <Scan size={20} className="text-white" strokeWidth={3} />
         </div>
-        <div className="flex items-center gap-3">
-            <button 
-                onClick={handleSettingsClick}
-                className={`p-2 rounded-full transition-all ${isLoggedIn ? 'bg-rose-50 text-rose-500' : 'bg-slate-50 text-slate-400 hover:text-slate-600'}`}
-            >
-                <Settings size={24} strokeWidth={2.5} />
-            </button>
-            {isLoggedIn && (
-               <button onClick={handleLogout} className="p-2 bg-slate-50 text-slate-400 rounded-full hover:bg-rose-50 hover:text-rose-500 transition-colors">
-                  <LogOut size={24} strokeWidth={2.5} />
-               </button>
-            )}
+        <div className="absolute -bottom-1 -right-1 bg-white p-0.5 rounded-full shadow-sm">
+          <Utensils size={10} className="text-[#FF2442]" strokeWidth={3} />
         </div>
       </div>
+      <h1 className="text-xl font-black tracking-tighter text-gray-800 flex items-baseline">
+        码上<span className="text-[#FF2442]">菜谱</span>
+      </h1>
+    </div>
+  );
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-36">
-        
-        {/* Hero Actions - XHS Style: Bold Cards */}
-        <div className="p-5 grid grid-cols-2 gap-4">
+  return (
+    <div className="flex flex-col min-h-[100dvh] bg-white text-gray-800 font-sans max-w-lg mx-auto shadow-2xl relative">
+      {isScanning && (
+        <div className="fixed inset-0 z-[100] bg-white/90 backdrop-blur-lg flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-300">
+          <div className="w-full max-w-[240px] aspect-[3/4] bg-white rounded-3xl border-4 border-rose-50 relative overflow-hidden shadow-2xl">
+             <div className="scan-line"></div>
+             <div className="absolute inset-0 flex items-center justify-center">
+                 <Loader2 size={40} className="text-[#FF2442] animate-spin opacity-40" strokeWidth={3} />
+             </div>
+          </div>
+          <div className="mt-8 space-y-2">
+            <h3 className="text-2xl font-black brand-font">{zh.analyzing}</h3>
+            <p className="text-xs font-bold opacity-40 tracking-widest">{en.analyzing}</p>
+          </div>
+        </div>
+      )}
+
+      <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="hidden" />
+
+      <header className="glass px-5 pt-[calc(var(--safe-top)+0.5rem)] pb-3 flex justify-between items-center sticky top-0 z-30">
+        <AppLogo />
+        <button 
+          onClick={() => isLoggedIn ? setIsAdminOpen(true) : setModals(m => ({ ...m, login: true }))}
+          className={`p-2.5 rounded-2xl transition-all ${isLoggedIn ? 'bg-rose-50 text-[#FF2442]' : 'bg-gray-50 text-gray-400'}`}
+        >
+          <Settings size={22} strokeWidth={2.5} />
+        </button>
+      </header>
+
+      <main className="flex-1 overflow-y-auto no-scrollbar overscroll-contain pb-40">
+        <section className="px-5 pt-6 grid grid-cols-2 gap-4">
             <button 
                 onClick={handleScanClick}
-                disabled={isScanning}
-                className="group relative overflow-hidden flex flex-col items-center justify-center gap-2 bg-[#FF2442] text-white py-6 px-4 rounded-[2rem] shadow-xl shadow-rose-200 active:scale-[0.98] transition-all disabled:opacity-80 disabled:scale-100"
+                className="group relative h-40 flex flex-col items-center justify-center gap-3 bg-[#FF2442] text-white rounded-[2.5rem] shadow-lg shadow-rose-100 active:scale-95 transition-all"
             >
-                <div className="bg-white/20 p-3.5 rounded-full backdrop-blur-md relative z-10">
-                    {isScanning ? <Loader2 size={32} className="animate-spin" strokeWidth={3} /> : <Camera size={32} strokeWidth={2.5} />}
+                <div className="bg-white/20 p-4 rounded-3xl">
+                    <Camera size={28} strokeWidth={2.5} />
                 </div>
-                <div className="text-center relative z-10 mt-1">
-                    <span className="block text-lg font-black leading-none mb-1">{isScanning ? zh.analyzing : zh.scanMenu}</span>
-                    <span className="block text-[10px] font-bold opacity-80 uppercase tracking-wide">{isScanning ? en.analyzing : en.scanMenu}</span>
+                <div className="text-center">
+                    <span className="block text-base font-black leading-none mb-1">{zh.scanMenu}</span>
+                    <span className="block text-[9px] font-bold opacity-60 uppercase tracking-widest">{en.scanMenu}</span>
                 </div>
             </button>
-            
             <button 
                 onClick={() => setModals(m => ({ ...m, album: true }))}
-                className="group relative overflow-hidden flex flex-col items-center justify-center gap-2 bg-white text-slate-700 py-6 px-4 rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-50 active:scale-[0.98] transition-all"
+                className="group h-40 flex flex-col items-center justify-center gap-3 bg-white text-gray-700 rounded-[2.5rem] shadow-sm border border-gray-100 active:scale-95 transition-all"
             >
-                <div className="bg-amber-50 text-amber-500 p-3.5 rounded-full relative z-10">
-                    <ImageIcon size={32} strokeWidth={2.5} />
+                <div className="bg-rose-50 text-[#FF2442] p-4 rounded-3xl">
+                    <ImageIcon size={28} strokeWidth={2.5} />
                 </div>
-                <div className="text-center relative z-10 mt-1">
-                    <span className="block text-lg font-black leading-none mb-1 text-slate-800">{zh.merchantAlbum}</span>
-                    <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide">{en.merchantAlbum}</span>
+                <div className="text-center">
+                    <span className="block text-base font-black leading-none mb-1">{zh.merchantAlbum}</span>
+                    <span className="block text-[9px] font-bold text-gray-300 uppercase tracking-widest">{en.merchantAlbum}</span>
                 </div>
             </button>
-        </div>
+        </section>
 
-        {/* WiFi Widget */}
-        <div className="px-5 pb-2">
+        <div className="px-5 mt-6">
              <WiFiCard config={config} />
         </div>
 
-        {/* List Header - XHS Style: Pill Shapes */}
-        <div className="px-5 py-4 bg-transparent sticky top-0 z-20 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <span className="bg-rose-500 w-1 h-4 rounded-full"></span>
-                <h2 className="text-base font-black text-slate-800">
-                    {zh.detectedItems}
-                </h2>
-            </div>
-
+        <div className="px-5 pt-8 pb-4 flex items-center justify-between sticky top-[calc(var(--safe-top)+4.5rem)] bg-white/90 backdrop-blur-md z-20">
             <div className="flex items-center gap-3">
-                {hasSelection && (
-                    <button 
-                        onClick={clearSelection}
-                        className="text-xs font-black text-rose-500 bg-rose-50 px-3 py-1.5 rounded-full active:bg-rose-100 transition-colors"
-                    >
-                        {zh.clearAll}
-                    </button>
+                <div className="w-1.5 h-5 bg-[#FF2442] rounded-full"></div>
+                <h2 className="text-lg font-black brand-font">{zh.detectedItems}</h2>
+            </div>
+            
+            <div className="flex items-center gap-2">
+                {items.length > 0 && (
+                  <button onClick={() => { setItems([]); setSelectedIds(new Set()); }} className="text-xs font-black text-[#FF2442] bg-rose-50 px-3 py-2 rounded-xl">
+                    {zh.clearAll}
+                  </button>
                 )}
-                
-                <div className="relative group">
-                    <div className="flex items-center gap-2 bg-white border border-slate-100 shadow-sm rounded-full px-3 py-1.5 transition-colors cursor-pointer">
-                        <Globe size={14} className="text-slate-400" strokeWidth={2.5} />
-                        <select 
-                            value={targetLang}
-                            onChange={(e) => setTargetLang(e.target.value as TargetLanguage)}
-                            className="bg-transparent text-xs font-bold text-slate-600 focus:outline-none cursor-pointer appearance-none pr-4"
-                        >
-                            {TARGET_LANGUAGES.map(lang => (
-                                <option key={lang.code} value={lang.code}>
-                                    {lang.flag} {lang.label}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="absolute right-2 pointer-events-none text-slate-300">
-                             <span className="text-[8px]">▼</span>
-                        </div>
-                    </div>
+                <div className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-1.5 flex items-center gap-1">
+                    <Globe size={14} className="text-gray-400" />
+                    <select 
+                      value={targetLang} 
+                      onChange={(e) => setTargetLang(e.target.value as TargetLanguage)}
+                      className="bg-transparent text-[10px] font-black text-gray-600 outline-none"
+                    >
+                      {TARGET_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+                    </select>
                 </div>
             </div>
         </div>
 
-        {/* Items List */}
-        <div className="px-5 pb-4 min-h-[300px]">
+        <div className="px-5 pb-10 min-h-[40vh]">
             {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center pt-8 pb-20 text-center">
-                    <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-6 relative">
-                         <div className="absolute inset-0 bg-slate-100 rounded-full scale-110 opacity-50"></div>
-                         <ChefHat size={48} className="text-slate-300" strokeWidth={1.5} />
-                    </div>
-                    <p className="text-xl font-black text-slate-800 mb-2">{zh.readyToOrder}</p>
-                    <p className="text-sm font-medium text-slate-400 mb-8 max-w-[200px] leading-relaxed">{en.readyToOrder}</p>
-                    
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 px-5 py-3 rounded-full border border-slate-100">
-                        <Camera size={16} strokeWidth={2.5} />
-                        <span>{zh.tapToScan}</span>
-                    </div>
+                <div className="py-20 flex flex-col items-center justify-center text-center">
+                    <div className="text-7xl mb-6 opacity-80 animate-bounce">🥘</div>
+                    <h3 className="text-lg font-black text-gray-800">{zh.readyToOrder}</h3>
+                    <p className="text-xs font-bold text-gray-400 mt-1 max-w-[200px]">{en.readyToOrder}</p>
                 </div>
             ) : (
-                <div className="grid gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {items.map(item => (
+                <div className="grid gap-3 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                    {items.map((item, idx) => (
                         <MenuListItem 
                             key={item.id} 
                             item={item} 
                             isSelected={selectedIds.has(item.id)}
                             toggleSelection={handleToggleSelection}
                             currencySymbol={config.currencySymbol}
+                            style={{ animationDelay: `${idx * 50}ms` }}
                         />
                     ))}
                 </div>
             )}
         </div>
-      </div>
+      </main>
 
-      {/* Floating Bottom Dock - XHS Style: Rounded, colorful */}
-      <div className="absolute bottom-8 left-6 right-6 z-40">
-        <div className="flex gap-4 p-2.5 bg-white/95 backdrop-blur-xl border border-white/50 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.1)] ring-1 ring-slate-900/5">
+      <nav className="fixed bottom-0 inset-x-0 z-40 px-6 pb-safe bg-gradient-to-t from-white via-white to-transparent pt-6">
+        <div className="glass p-2 rounded-[3rem] shadow-[0_10px_40px_-10px_rgba(255,36,66,0.3)] flex gap-3 max-w-md mx-auto">
             <button
                 onClick={() => setModals(m => ({ ...m, comm: true }))}
-                className="flex-1 h-16 rounded-[2rem] flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group bg-amber-300 text-slate-900 shadow-lg shadow-amber-200 active:scale-[0.98]"
+                className="flex-1 h-14 rounded-[2.2rem] flex items-center justify-center gap-3 bg-gray-50 text-gray-700 active:scale-95 transition-all relative overflow-hidden group border border-gray-100"
             >
-                {hasSelection && (
-                    <span className="absolute top-2 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-white text-amber-500 text-[10px] font-black shadow-sm">
-                        {selectedIds.size}
-                    </span>
-                )}
-                <MessageCircle size={24} strokeWidth={3} className="fill-current" />
-                <div className="flex flex-col items-start leading-none">
-                     <span className="font-black text-sm">{zh.communicate}</span>
-                     <span className="text-[10px] font-bold opacity-60 uppercase">{en.communicate}</span>
+                {selectedIds.size > 0 && <span className="absolute top-1.5 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-[#FF2442] text-white text-[9px] font-black">{selectedIds.size}</span>}
+                <MessageCircle size={22} strokeWidth={3} className="text-[#FF2442]" />
+                <div className="text-left">
+                     <p className="font-black text-[11px] leading-none">{zh.communicate}</p>
+                     <p className="text-[7px] font-bold opacity-40 uppercase mt-0.5">{en.communicate}</p>
                 </div>
             </button>
 
             <button
                 onClick={() => setModals(m => ({ ...m, pay: true }))}
-                className="flex-1 h-16 bg-[#FF2442] text-white rounded-[2rem] flex items-center justify-center gap-3 shadow-lg shadow-rose-200 active:scale-[0.98] transition-all group"
+                className="flex-1 h-14 rounded-[2.2rem] flex items-center justify-center gap-3 bg-[#FF2442] text-white shadow-lg active:scale-95 transition-all"
             >
-                <CreditCard size={24} strokeWidth={3} className="fill-white/20" />
-                <div className="flex flex-col items-start leading-none">
-                     <span className="font-black text-sm">{zh.payBill}</span>
-                     <span className="text-[10px] font-bold opacity-80 uppercase">{en.payBill}</span>
+                <CreditCard size={22} strokeWidth={3} />
+                <div className="text-left">
+                     <p className="font-black text-[11px] leading-none">{zh.payBill}</p>
+                     <p className="text-[7px] font-bold opacity-80 uppercase mt-0.5">{en.payBill}</p>
                 </div>
             </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Modals */}
-      <CommModal 
-        isOpen={modals.comm} 
-        onClose={() => setModals(m => ({ ...m, comm: false }))} 
-        selectedItems={selectedItems}
-      />
-      
-      <PayModal 
-        isOpen={modals.pay} 
-        onClose={() => setModals(m => ({ ...m, pay: false }))} 
-        totalAmount={totalAmount}
-        config={config}
-      />
-
-      <LoginModal 
-        isOpen={modals.login}
-        onClose={() => setModals(m => ({ ...m, login: false }))}
-        onLoginSuccess={handleLoginSuccess}
-        correctPassword={config.password}
-      />
-
-      <MerchantSettingsModal
-        isOpen={modals.settings}
-        onClose={() => setModals(m => ({ ...m, settings: false }))}
-        config={config}
-        onSave={updateConfig}
-      />
-
-      <AlbumModal
-        isOpen={modals.album}
-        onClose={() => setModals(m => ({ ...m, album: false }))}
-        images={config.albumImages}
-      />
-
+      <CommModal isOpen={modals.comm} onClose={() => setModals(m => ({ ...m, comm: false }))} selectedItems={selectedItems} />
+      <PayModal isOpen={modals.pay} onClose={() => setModals(m => ({ ...m, pay: false }))} totalAmount={totalAmount} config={config} />
+      <LoginModal isOpen={modals.login} onClose={() => setModals(m => ({ ...m, login: false }))} onLoginSuccess={() => { setIsLoggedIn(true); setModals(m => ({ ...m, login: false })); setIsAdminOpen(true); }} correctPassword={config.password} />
+      <AdminDashboard isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} config={config} onUpdateConfig={setConfig} />
+      <AlbumModal isOpen={modals.album} onClose={() => setModals(m => ({ ...m, album: false }))} images={config.albumImages} />
     </div>
   );
 };

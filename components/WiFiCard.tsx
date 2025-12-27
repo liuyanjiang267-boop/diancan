@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Wifi, Copy, Check, Lock } from 'lucide-react';
+import { Wifi, Copy, Check, Lock, ChevronRight } from 'lucide-react';
 import { MerchantConfig } from '../types';
 import { t } from '../translations';
 
@@ -24,37 +24,35 @@ const WiFiCard: React.FC<WiFiCardProps> = ({ config }) => {
   return (
     <div 
       onClick={() => setShowPass(!showPass)}
-      className="bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-50 cursor-pointer transition-all group relative overflow-hidden active:scale-[0.99]"
+      className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-gray-100 cursor-pointer transition-all group relative overflow-hidden active:scale-[0.98]"
     >
-      {/* Background Accent */}
-      <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-6 -mt-6 opacity-60 group-hover:scale-110 transition-transform duration-500"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-full -mr-10 -mt-10 opacity-40 group-hover:scale-110 transition-transform duration-700"></div>
 
       <div className="flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center">
-            <Wifi size={28} strokeWidth={3} />
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 rounded-[1.8rem] bg-[#FF2442] text-white flex items-center justify-center shadow-lg shadow-rose-100">
+            <Wifi size={28} strokeWidth={2.5} />
           </div>
           
           <div>
-            <div className="flex items-baseline gap-2 mb-1">
-                 <span className="text-xs font-black text-slate-400 uppercase tracking-wider">{zh.wifiLabel}</span>
-                 <span className="text-[10px] text-slate-300 font-bold">{en.wifiLabel}</span>
+            <div className="flex items-baseline gap-2 mb-1.5">
+                 <span className="text-[10px] font-black text-[#FF2442] bg-rose-50 px-2 py-0.5 rounded-md uppercase tracking-widest">{zh.wifiLabel}</span>
             </div>
             
-            <div className="text-xl font-black text-slate-800 leading-none">
+            <div className="text-xl font-black text-gray-800 leading-none">
               {config.wifiSsid || zh.wifiConfigured}
             </div>
             
-            <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${showPass ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+            <div className={`grid transition-all duration-500 ease-in-out ${showPass ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
-                    <div className="pt-2 flex items-center gap-2">
-                         <Lock size={14} strokeWidth={2.5} className="text-slate-300" />
-                         <span className="font-mono text-sm font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-lg">{config.wifiPass}</span>
+                    <div className="flex items-center gap-2 bg-rose-50/50 p-2 rounded-xl border border-rose-100">
+                         <Lock size={14} className="text-rose-300" />
+                         <span className="font-mono text-xs font-bold text-rose-700">{config.wifiPass}</span>
                          <button 
                             onClick={(e) => handleCopy(e, config.wifiPass)}
-                            className="p-1.5 hover:bg-slate-100 rounded-full text-slate-300 hover:text-rose-500 transition-colors"
+                            className="ml-auto p-1.5 hover:bg-white rounded-lg transition-colors"
                         >
-                            {copied ? <Check size={16} strokeWidth={3} className="text-green-500" /> : <Copy size={16} strokeWidth={2.5} />}
+                            {copied ? <Check size={14} className="text-[#FF2442]" strokeWidth={3} /> : <Copy size={14} className="text-rose-300" />}
                         </button>
                     </div>
                 </div>
@@ -62,10 +60,10 @@ const WiFiCard: React.FC<WiFiCardProps> = ({ config }) => {
           </div>
         </div>
 
-        <div className="flex flex-col items-end justify-center">
+        <div className="shrink-0">
              {!showPass && (
-                 <div className="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-full group-hover:bg-rose-100 transition-colors">
-                    {zh.tapConnect}
+                 <div className="bg-gray-50 p-2 rounded-full text-gray-200 group-hover:text-[#FF2442] transition-colors">
+                    <ChevronRight size={24} strokeWidth={3} />
                  </div>
              )}
         </div>
